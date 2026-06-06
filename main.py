@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
+from call_function import available_functions
 from config import SYSTEM_PROMPT
 
 
@@ -33,7 +34,7 @@ def generate_content(client: genai.Client, messages: list[types.Content], verbos
         model="gemini-3.5-flash",
         contents=messages,
         config=types.GenerateContentConfig(
-            system_instruction=SYSTEM_PROMPT
+            tools=[available_functions], system_instruction=SYSTEM_PROMPT
         )
     )
     if not response.usage_metadata:
@@ -42,8 +43,13 @@ def generate_content(client: genai.Client, messages: list[types.Content], verbos
     if verbose:
         print("Prompt tokens:", response.usage_metadata.prompt_token_count)
         print("Response tokens:", response.usage_metadata.candidates_token_count)
-    print("Response:")
-    print(response.text)
+
+    if response.function_calls:
+        for function_call in response.function_calls:
+            print(f"Calling function: {function_call.name}({function_call.args})")
+    else:
+        print("Response:")
+        print(response.text)
 
 if __name__ == "__main__":
     main()

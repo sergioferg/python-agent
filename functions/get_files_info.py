@@ -1,8 +1,23 @@
 import os
 import subprocess
 
+from google.genai import types
+
 from config import MAX_CHARS
 
+schema_get_files_info = types.FunctionDeclaration(
+    name="get_files_info",
+    description="Lists files in a specified directory relative to the working directory, providing file size and directory status",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "directory": types.Schema(
+                type=types.Type.STRING,
+                description="Directory path to list files from, relative to the working directory (default is the working directory itself)",
+            ),
+        },
+    ),
+)
 
 def get_files_info(working_directory: str, directory: str = "."):
     try:
@@ -27,6 +42,20 @@ def get_files_info(working_directory: str, directory: str = "."):
     except Exception as e:
         return f"Error: {e}"
 
+schema_get_file_content = types.FunctionDeclaration(
+    name="get_file_content",
+    description="Returns the contents of a file in a specified directory relative to the working directory",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="File path to retrieve information from",
+            ),
+        },
+    ),
+)
+
 def get_file_content(working_directory: str, file_path: str) -> str:
     try:
         work_dir_abs = os.path.abspath(working_directory)
@@ -49,6 +78,24 @@ def get_file_content(working_directory: str, file_path: str) -> str:
 
     except Exception as e:
         return f"Error: {e}"
+
+schema_write_file = types.FunctionDeclaration(
+    name="write_file",
+    description="Writes content into a specified file, returns success or error",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="File path to write content into",
+            ),
+            "content": types.Schema(
+                type=types.Type.STRING,
+                description="The content itself to write into the file",
+            ),
+        },
+    ),
+)
 
 def write_file(working_directory: str, file_path: str, content: str) -> str:
     try:
@@ -73,6 +120,28 @@ def write_file(working_directory: str, file_path: str, content: str) -> str:
 
     except Exception as e:
         return f"Error: {e}"
+
+schema_run_python_file = types.FunctionDeclaration(
+    name="run_python_file",
+    description="Runs a python file with an optional list of arguments. Returns captured STDOUT or STERR in case of having. Also returns exit code in case of failure.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="File path to run file from.",
+            ),
+            "args": types.Schema(
+                type=types.Type.ARRAY,
+                items=types.Schema(
+                    type=types.Type.STRING,
+                ),
+                description="List of strings containing parameters to be added to the python call, can be None.",
+            ),
+        },
+        required=["file_path"],
+    ),
+)
 
 def run_python_file(
     working_directory: str, file_path: str, args: list[str] | None = None

@@ -5,10 +5,13 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
+from config import SYSTEM_PROMPT
+
 
 def main():
     parser = argparse.ArgumentParser(description="Chatbot")
     parser.add_argument("user_prompt", type=str, help="User prompt")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
     args = parser.parse_args()
 
     load_dotenv()
@@ -20,19 +23,25 @@ def main():
     messages: list[types.Content] = [
         types.Content(role="user", parts=[types.Part(text=args.user_prompt)])
     ]
-    generate_content(client, messages)
+    if args.verbose:
+        print(f"User prompt: {args.user_prompt}\n")
+    generate_content(client, messages, args.verbose)
 
 
-def generate_content(client: genai.Client, messages: list[types.Content]) -> None:
+def generate_content(client: genai.Client, messages: list[types.Content], verbose: bool) -> None:
     response = client.models.generate_content(
         model="gemini-3.5-flash",
         contents=messages,
+        config=types.GenerateContentConfig(
+            system_instruction=SYSTEM_PROMPT
+        )
     )
     if not response.usage_metadata:
         raise RuntimeError("Gemini API response has encountered an error")
 
-    print("Prompt tokens:", response.usage_metadata.prompt_token_count)
-    print("Response tokens:", response.usage_metadata.candidates_token_count)
+    if verbose:
+        print("Prompt tokens:", response.usage_metadata.prompt_token_count)
+        print("Response tokens:", response.usage_metadata.candidates_token_count)
     print("Response:")
     print(response.text)
 

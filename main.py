@@ -31,7 +31,7 @@ def main():
 
 def generate_content(client: genai.Client, messages: list[types.Content], verbose: bool) -> None:
     response = client.models.generate_content(
-        model="gemini-3.5-flash",
+        model="gemini-2.5-flash",
         contents=messages,
         config=types.GenerateContentConfig(
             tools=[available_functions], system_instruction=SYSTEM_PROMPT
